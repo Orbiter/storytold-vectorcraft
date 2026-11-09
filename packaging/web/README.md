@@ -1,5 +1,11 @@
 # Hosting VectorCraft for the web
 
+> **Last updated:** 2026-11-09 · **Change:** added container and Kubernetes hosting instructions.
+
+For the container image and production-only GitLab/Harbor deployment to Kubernetes,
+see [deployment/README.md](../../deployment/README.md). It serves the source-built
+web interface in one pod with wildcard CORS.
+
 `vectorcraft-web-<version>.zip` (from the GitHub release, or `packaging/web/package.sh`) holds a
 static site in `vectorcraft-web-<version>/`:
 
@@ -117,3 +123,9 @@ VectorCraft renders with wgpu. It uses **WebGPU** when the browser has it and fa
 For example: `<iframe src="https://example.com/vectorcraft/?webgl" ...>`.
 
 A browser with neither WebGPU nor WebGL2 gets a message in place of the app.
+
+## Revision history
+
+| Date | Change |
+| --- | --- |
+| 2026-11-09 | Linked the web container and production-only Kubernetes deployment with wildcard CORS. |

@@ -1,0 +1,56 @@
+---
+imagePullSecrets:
+  - name: harbor-registry
+replicaCount: 1
+autoscaling:
+  enabled: false
+image:
+  repository: harbor-devops.bdvhs.p.oediv.io/triton/vectorcraft
+  tag: latest
+  pullPolicy: Always
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+container:
+  port: 8080
+service:
+  type: ClusterIP
+  port: 80
+secret:
+  enabled: false
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod-bms7g-p-oediv-io
+    external-dns: "true"
+    # nginx.conf owns CORS, including OPTIONS and error responses.
+    nginx.ingress.kubernetes.io/enable-cors: "false"
+  hosts:
+    - host: vectorcraft.bms7g.p.oediv.io
+      paths:
+        - /
+  tls:
+    - secretName: vectorcraft-bms7g-p-oediv-io
+      hosts:
+        - vectorcraft.bms7g.p.oediv.io
+  spec:
+    ingressClassName: internal-nginx-ingress
+resources:
+  requests:
+    memory: 32Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 500m
+probesPath: /healthz
+readinessPath: /healthz

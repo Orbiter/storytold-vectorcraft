@@ -1,5 +1,7 @@
 # Development
 
+> **Last updated:** 2026-11-09 · **Change:** GitLab/Harbor and Kubernetes deployment for the web build; one production pod and wildcard CORS.
+
 > **Last updated:** 2026-11-06 · **Change:** Hindi catalog and zero/one plural rule; desktop Devanagari fallback and optional craft-fonts UI face; native review pending.
 > **Last updated:** 2026-11-01 · **Change:** Linux: Automatic Linux Display Server opens the window through XWayland when a pen is attached on a Wayland session, so the pen draws (#4967); `VECTORCRAFT_NATIVE_WAYLAND=1` keeps Wayland.
 > **Last updated:** 2026-10-31 · **Change:** files opened while the app runs open in its window on Windows and Linux (#4892); `--new-instance`.
@@ -34,6 +36,10 @@ craft-fonts checkout adds the fonts the site serves beside the wasm: Trunk's `po
 Any static file server works for `dist/web`, for example `python3 -m http.server 8766` inside that directory. The release `.wasm` is about 17.5 MB, or 7.1 MB gzipped, so serve it with compression.
 
 URL flag: `?webgl` forces the WebGL2 backend.
+
+For the production container and GitLab-to-Kubernetes pipeline, see
+[deployment/README.md](../deployment/README.md). It serves this same web build
+through nginx, with one production replica, `Recreate` upgrades and wildcard CORS.
 
 How the web shell (`apps/vectorcraft-web/src/web.rs`) differs from desktop:
 
@@ -506,6 +512,7 @@ Scores and hour estimates are unchanged.
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-09 | minor | Document the GitLab/Harbor web container and production-only Kubernetes hosting with wildcard CORS. |
 | 2026-11-06 | minor | Localisation: Hindi catalog, zero/one plurals, desktop and web font requirements; AI/MT draft, native review pending. |
 | 2026-10-31 | minor | Files opened while the app runs open in its window on Windows and Linux (#4892); `--new-instance` opts out. |
 | 2026-10-29 | minor | Linux clipboard: core Wayland protocol text fallback where arboard has neither data-control nor X11 (the Flatpak on GNOME).; its reads wait 2 s at most. |

@@ -1,0 +1,21 @@
+# Only the application sources and their existing assets belong in the build.
+.git
+.github
+.gitlab-ci.yml
+.ci
+.agents
+.codex
+.aws
+.env
+.env.*
+**/.DS_Store
+**/*~
+target
+dist
+plan
+corpus
+log
+craft-fonts
+deployment/tests
+deployment-diagnostics.txt
+**/__pycache__

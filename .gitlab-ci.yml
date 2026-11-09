@@ -1,0 +1,88 @@
+---
+default:
+  tags:
+    - kubernetes
+  image:
+    name: $RGCPDEPLOYER:$RGCPDEPLOYERVERSION
+
+variables:
+  DESTINATION_IMAGE: ${HARBOR_REGISTRY}/triton/vectorcraft
+  IMAGE_VERSION: $CI_COMMIT_SHA
+  DOCKER_FILE: Dockerfile
+  KANIKO_CONTEXT: $CI_PROJECT_DIR
+  KANIKO_CACHE: "no"
+  KANIKO_PREVIOUS: "no"
+  KANIKO_BUILD_ARGS: BUILD_CA_CERT_BASE64=$RGAG_CA_BASE64
+  TARGET_KUBECONFIG: $KUBECONFIG_rad_app_01
+  RELEASE: vectorcraft
+  HELM_TIMEOUT: 1200s
+  HELM_CHART_VERSION: "0.1.1"
+  # Provision namespaces in Rancher so they inherit project permissions.
+  CREATE_NAMESPACE: "no"
+  NAMESPACE: vectorcraft
+  VALUES: deployment/values.yaml
+  INGRESS_HOST: vectorcraft.bms7g.p.oediv.io
+
+stages:
+  - validate
+  - build
+  - deploy
+  - undeploy
+
+# CI_SNIPPETS_REF must be inherited before GitLab resolves these includes.
+include:
+  - project: ops/snippets
+    ref: $CI_SNIPPETS_REF
+    file:
+      - globals.yml
+      - utils.yml
+      - kaniko-executor.yml
+
+validate_environment:
+  stage: validate
+  image: harbor-devops.bdvhs.p.oediv.io/dockerhub/library/python:3.12-slim
+  script:
+    - sh .ci/check-env.sh build
+    - python3 -m unittest discover -s deployment/tests -v
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
+        sh .ci/check-env.sh cluster
+      fi
+
+build_service:
+  extends: .snippets:build
+  before_script:
+    - sh .ci/check-env.sh build
+    - !reference [".snippets:build", before_script]
+
+.cluster_job:
+  before_script:
+    - sh .ci/check-env.sh cluster
+  resource_group: $NAMESPACE
+  environment:
+    name: production
+    url: https://$INGRESS_HOST
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  artifacts:
+    when: on_failure
+    expire_in: 7 days
+    paths: [deployment-diagnostics.txt]
+
+deploy_service:
+  extends: .cluster_job
+  stage: deploy
+  environment:
+    on_stop: undeploy_service
+  script: [sh deploy.sh --kubernetes deploy]
+
+undeploy_service:
+  extends: .cluster_job
+  stage: undeploy
+  environment:
+    action: stop
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+      allow_failure: true
+  script: [sh deploy.sh --kubernetes undeploy]
